@@ -34,11 +34,12 @@ Doel: telefoon en laptop delen dezelfde lijst.
 > ⚠️ De anon-key is veilig om in de code te zetten, maar we zetten 'm netjes in een
 > `.env`-bestand en beschermen de database met "Row Level Security".
 
-## Fase 3 — Online zetten (GitHub Pages)
+## Fase 3 — Online zetten (GitHub Pages) — klaar ✅
 
-- [ ] Code op GitHub (privé of openbaar)
-- [ ] GitHub Actions die de app automatisch bouwt en publiceert
-- [ ] App bereikbaar op een `github.io`-adres, ook vanaf je telefoon
+- [x] Code op GitHub (openbaar): `Backpacker2/kotoba`
+- [x] App live op **https://backpacker2.github.io/kotoba/**, ook op je telefoon
+- [x] Publiceren via `npm run deploy` (naar de `gh-pages` branch) — zie `DEPLOY.md`
+- [ ] Automatisch publiceren bij elke push (optioneel; workflow staat klaar in `DEPLOY.md`)
 
 ## Fase 4 — Leuke extra's (ideeën)
 

@@ -2,6 +2,8 @@
 
 > Verzamel en leer je Japanse woorden — op je telefoon én je laptop.
 
+**▶️ Live: https://backpacker2.github.io/kotoba/**
+
 Kotoba is een simpele, mooie "wiki" waarin je Japanse woorden, kanji en zinnen
 bewaart en overzichtelijk terugvindt. Je verzamelt woorden uit **Genki**,
 **WaniKani** en uit **gesprekken** die je online voert, en houdt ze op één plek bij.
