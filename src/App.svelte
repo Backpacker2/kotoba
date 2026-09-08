@@ -79,8 +79,8 @@
 <div class="wrap">
   <header class="head">
     <div class="brand">
-      <h1><span class="kanji">言葉箱</span> <span class="latin">Kotobako</span></h1>
-      <p class="tagline">Jouw eigen woordendoos voor Japans</p>
+      <h1><span class="kanji">言葉</span> <span class="latin">Kotoba</span></h1>
+      <p class="tagline">Verzamel en leer je Japanse woorden</p>
     </div>
     <button class="btn btn-primary add" onclick={openNew}>＋ Woord toevoegen</button>
   </header>

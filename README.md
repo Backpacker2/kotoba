@@ -1,8 +1,8 @@
-# Kotobako 言葉箱
+# Kotoba 言葉
 
-> Jouw eigen woordendoos voor het leren van Japans — op je telefoon én je laptop.
+> Verzamel en leer je Japanse woorden — op je telefoon én je laptop.
 
-Kotobako is een simpele, mooie "wiki" waarin je Japanse woorden, kanji en zinnen
+Kotoba is een simpele, mooie "wiki" waarin je Japanse woorden, kanji en zinnen
 bewaart en overzichtelijk terugvindt. Je verzamelt woorden uit **Genki**,
 **WaniKani** en uit **gesprekken** die je online voert, en houdt ze op één plek bij.
 
@@ -79,4 +79,4 @@ Twee bestanden zijn "de baas":
 
 ---
 
-言葉箱 = "woordendoos". Veel leerplezier! 🎌
+言葉 (kotoba) = "woorden". Veel leerplezier! 🎌

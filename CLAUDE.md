@@ -1,4 +1,7 @@
-# Kotobako — projectgids voor Claude Code
+# Kotoba — projectgids voor Claude Code
+
+> Naam van de app is **Kotoba** (言葉, "woorden"). De projectmap en GitHub-repo
+> kunnen nog `kotobako` heten — dat is bewust, om paden niet te breken.
 
 Een kleine **Svelte 5 + Vite** web-app waarin Timo Japanse woorden, kanji en
 zinnen bewaart en terugvindt — op telefoon én laptop. Bronnen: Genki, WaniKani,
