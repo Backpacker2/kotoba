@@ -30,7 +30,18 @@ function fromRow(r) {
     source: r.source ?? 'Anders',
     tags: r.tags ?? [],
     createdAt: r.created_at,
+    srsLevel: r.srs_level ?? 0,
+    dueAt: r.due_at ?? null,
+    lastReviewedAt: r.last_reviewed_at ?? null,
   };
+}
+
+// Intervallen (in dagen) per SRS-niveau. Niveau 0 = meteen weer oefenen.
+export const SRS_INTERVALS = [0, 1, 3, 7, 14, 30, 90];
+
+/** Is dit woord nu toe aan herhaling? */
+export function isDue(word, now = Date.now()) {
+  return !word.dueAt || new Date(word.dueAt).getTime() <= now;
 }
 
 function toRow(data) {
@@ -122,6 +133,32 @@ export async function deleteWords(ids) {
     return;
   }
   words.update((list) => list.filter((w) => !ids.includes(w.id)));
+}
+
+/**
+ * Verwerk een herhaling (oefenmodus). `correct` = wist de gebruiker het?
+ * Goed → niveau omhoog en later opnieuw; fout → terug naar niveau 0.
+ */
+export async function reviewWord(word, correct) {
+  const max = SRS_INTERVALS.length - 1;
+  const level = correct ? Math.min((word.srsLevel ?? 0) + 1, max) : 0;
+  const dueMs = Date.now() + SRS_INTERVALS[level] * 86400000;
+  const patch = {
+    srs_level: level,
+    due_at: new Date(dueMs).toISOString(),
+    last_reviewed_at: new Date().toISOString(),
+  };
+  const { data: updated, error } = await supabase
+    .from(TABLE)
+    .update(patch)
+    .eq('id', word.id)
+    .select()
+    .single();
+  if (error) {
+    dbError.set(uitleg(error));
+    return;
+  }
+  words.update((list) => list.map((w) => (w.id === word.id ? fromRow(updated) : w)));
 }
 
 function uitleg(error) {

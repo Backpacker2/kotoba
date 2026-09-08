@@ -92,6 +92,25 @@ where id = (select id from auth.users where email = 'timo@rugzakreis.nl');
 
 Log daarna in de app opnieuw in (of herlaad), dan zie je het **Premium**-label.
 
+## Oefenmodus (spaced repetition) — extra kolommen
+
+De oefenmodus onthoudt per woord een **niveau** en een **"volgende herhaling"**.
+Draai dit één keer in de **SQL Editor**:
+
+```sql
+alter table public.words add column if not exists srs_level int not null default 0;
+alter table public.words add column if not exists due_at timestamptz not null default now();
+alter table public.words add column if not exists last_reviewed_at timestamptz;
+```
+
+Alle bestaande woorden worden dan meteen "toe aan herhaling" (due_at = nu), zodat
+je direct kunt oefenen. De oefenmodus is een **premium**-functie; zet jezelf op
+premium (zie hierboven) om 'm te gebruiken.
+
+Hoe het werkt: je krijgt de kanji, je toont het antwoord (lezing + betekenis +
+voorbeeld) en beoordeelt jezelf. **Goed** → niveau omhoog en later opnieuw
+(1 → 3 → 7 → 14 → 30 → 90 dagen). **Fout** → terug naar niveau 0, meteen weer.
+
 ## En het echte betalen (€1/maand)?
 
 Dat komt als laatste en is een apart project: het vraagt **Stripe**, jouw eigen

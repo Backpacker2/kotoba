@@ -41,15 +41,17 @@ Doel: telefoon en laptop delen dezelfde lijst.
 - [x] Publiceren via `npm run deploy` (naar de `gh-pages` branch) — zie `DEPLOY.md`
 - [ ] Automatisch publiceren bij elke push (optioneel; workflow staat klaar in `DEPLOY.md`)
 
-## Fase 4 — Leuke extra's (ideeën)
+## Fase 4 — Accounts, tiers & oefenen
 
-- [ ] Inloggen, zodat straks ook anderen hun eigen woordendoos kunnen hebben
-- [ ] "Oefenmodus": een woord tonen en jezelf overhoren (begin van flashcards)
+- [x] **Inloggen** + eigen database per gebruiker (Supabase Auth + RLS)
+- [x] **Gratis vs premium** (profiles.is_premium); gratis = max 500 woorden
+- [x] **Oefenmodus** met simpele spaced repetition (premium)
+- [ ] **Leergrafiek**: wanneer je hebt geleerd en wanneer je moet herhalen (premium) — volgende
+- [ ] **Betaling** €1/maand via Stripe (premium automatisch) — daarna
 - [ ] Dagelijkse streak: hoeveel dagen achter elkaar heb je iets toegevoegd
 - [ ] Sorteren en groeperen (op JLPT-niveau, op datum, op bron)
 - [ ] Importeren uit een CSV of vanaf WaniKani
 - [ ] Donkere modus
-- [ ] Woorden markeren als "geleerd" / "nog oefenen"
 
 ## Fase 5 — App-gevoel op de telefoon — klaar ✅
 

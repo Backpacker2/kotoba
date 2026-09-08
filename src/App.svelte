@@ -1,10 +1,11 @@
 <script>
-  import { words, loading, dbError, deleteWords, loadWords, clearWords, SOURCES } from './lib/db.js';
+  import { words, loading, dbError, deleteWords, loadWords, clearWords, isDue, SOURCES } from './lib/db.js';
   import { session, profile, authReady, signOut } from './lib/auth.js';
   import WordCard from './lib/WordCard.svelte';
   import WordForm from './lib/WordForm.svelte';
   import QuickAdd from './lib/QuickAdd.svelte';
   import Login from './lib/Login.svelte';
+  import Practice from './lib/Practice.svelte';
 
   const FREE_LIMIT = 500;
 
@@ -17,6 +18,10 @@
   let selectMode = $state(false);
   let selectedIds = $state([]);
 
+  // Oefenmodus (premium)
+  let practicing = $state(false);
+  let showUpsell = $state(false);
+
   const filters = ['Alle', ...SOURCES];
 
   // Laad de woorden zodra iemand is ingelogd; leeg de lijst bij uitloggen.
@@ -27,6 +32,16 @@
 
   let premium = $derived($profile?.is_premium ?? false);
   let atLimit = $derived(!premium && $words.length >= FREE_LIMIT);
+  let dueCount = $derived($words.filter((w) => isDue(w)).length);
+
+  function startPractice() {
+    if (premium) {
+      showUpsell = false;
+      practicing = true;
+    } else {
+      showUpsell = true;
+    }
+  }
 
   // Gefilterde + gesorteerde lijst (nieuwste eerst).
   let visible = $derived(
@@ -95,6 +110,10 @@
   <Login />
 {:else}
   <div class="wrap">
+    {#if practicing}
+      <Practice onclose={() => (practicing = false)} />
+    {/if}
+
     <div class="account">
       <span class="who">{$session.user?.email}</span>
       <span class="badge {premium ? 'prem' : 'free'}">{premium ? 'Premium' : 'Gratis'}</span>
@@ -106,8 +125,20 @@
         <h1><span class="kanji">言葉</span> <span class="latin">Kotoba</span></h1>
         <p class="tagline">Verzamel en leer je Japanse woorden</p>
       </div>
-      <button class="btn btn-primary add" onclick={openNew} disabled={atLimit}>＋ Woord toevoegen</button>
+      <div class="headbtns">
+        <button class="btn oefen" onclick={startPractice} title="Oefenen met spaced repetition">
+          Oefenen{#if premium && dueCount} ({dueCount}){/if}{#if !premium} 🔒{/if}
+        </button>
+        <button class="btn btn-primary add" onclick={openNew} disabled={atLimit}>＋ Woord toevoegen</button>
+      </div>
     </header>
+
+    {#if showUpsell && !premium}
+      <div class="banner upsell">
+        <span><b>Oefenmodus</b> met spaced repetition is een premium-functie (€1/maand): herhaal je woorden op het juiste moment en onthoud ze langer.</span>
+        <button class="link-btn" onclick={() => (showUpsell = false)}>Sluiten</button>
+      </div>
+    {/if}
 
     {#if $dbError}
       <div class="banner error">{$dbError}</div>
@@ -250,6 +281,19 @@
   .tagline { margin: 4px 0 0; color: var(--ink-soft); font-size: .95rem; }
   .add { white-space: nowrap; }
   .add:disabled { opacity: .45; cursor: default; }
+  .headbtns { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .oefen { white-space: nowrap; }
+
+  .banner.upsell {
+    background: var(--indigo-bg);
+    color: var(--indigo);
+    border: 1px solid #cdd6df;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .banner.upsell .link-btn { color: var(--indigo); flex-shrink: 0; }
 
   .stats { display: flex; gap: 28px; margin: 22px 0 4px; }
   .stat { display: flex; flex-direction: column; }
