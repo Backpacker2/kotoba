@@ -10,27 +10,36 @@ bewaart en overzichtelijk terugvindt. Je verzamelt woorden uit **Genki**,
 
 ## Wat kan het nu
 
-- ➕ Woorden toevoegen met: Japans, lezing (kana), betekenis, voorbeeldzin, bron en labels
+- ⚡ **Snel toevoegen**: typ alleen het Japanse woord en de vertaling — klaar
+- 🈁 **Automatische furigana**: bij snel toevoegen wordt de lezing (hiragana)
+  bepaald en klein boven de kanji gezet, zodat je uitspraak en spelling ziet
+- ➕ Uitgebreid toevoegen met: lezing, voorbeeldzin, bron en labels
 - 🔎 Zoeken op woord, lezing, betekenis of label
 - 🏷️ Filteren op bron (Genki / WaniKani / Gesprek / Anders)
-- ✏️ Woorden bewerken en verwijderen
+- ✏️ Woorden bewerken, en **meerdere tegelijk verwijderen** (selecteer-modus)
 - 📊 Teller: hoeveel woorden je hebt bewaard en hoeveel deze week
-- 🈁 Furigana (de lezing klein boven de kanji)
-- 📱 Werkt goed op telefoon en laptop (responsive)
+- ☁️ **Cloud-sync**: je lijst is overal hetzelfde, op telefoon én laptop
+- 📲 **Installeerbaar als app** (PWA): eigen icoon, schermvullend, offline schil
 
-Op dit moment worden je woorden **op het apparaat zelf** bewaard (in de browser).
-Cloud-sync via Supabase — zodat telefoon en laptop dezelfde lijst delen — is de
-volgende stap. Zie [`docs/ROADMAP.md`](docs/ROADMAP.md).
+## Installeren als app
+
+Kotoba is een web-app die je kunt **installeren** zodat hij als een echte app werkt.
+
+- **iPhone/iPad (Safari):** open de [site](https://backpacker2.github.io/kotoba/) →
+  deel-knop → *Zet op beginscherm*.
+- **Android (Chrome):** menu (⋮) → *App installeren* / *Toevoegen aan startscherm*.
+- **Laptop (Chrome/Edge):** installeer-icoontje in de adresbalk → *Installeren*.
 
 ## Techniek
 
-| Onderdeel      | Keuze                    | Waarom                                    |
-| -------------- | ------------------------ | ----------------------------------------- |
-| Framework      | Svelte 5 + Vite          | Licht, weinig code, snel om te leren      |
-| Taal           | JavaScript, HTML, CSS    | Overdraagbaar naar bijna elk project      |
-| Opslag (nu)    | localStorage             | Werkt meteen, zonder account of internet  |
-| Opslag (straks)| Supabase                 | Gratis cloud-database, synct overal       |
-| Hosting        | GitHub + GitHub Pages    | Gratis, jouw code staat online            |
+| Onderdeel   | Keuze                       | Waarom                                   |
+| ----------- | --------------------------- | ---------------------------------------- |
+| Framework   | Svelte 5 + Vite             | Licht, weinig code, snel om te leren     |
+| Taal        | JavaScript, HTML, CSS       | Overdraagbaar naar bijna elk project     |
+| Opslag      | Supabase                    | Gratis cloud-database, synct overal      |
+| Furigana    | kuromoji (@sglkc/kuromoji)  | Bepaalt de lezing van kanji in de browser|
+| App/offline | vite-plugin-pwa             | Installeerbaar + service worker          |
+| Hosting     | GitHub Pages                | Gratis, op een github.io-adres           |
 
 De uitleg achter deze keuzes staat in [`docs/BESLISSINGEN.md`](docs/BESLISSINGEN.md).
 

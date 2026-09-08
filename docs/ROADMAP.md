@@ -51,7 +51,16 @@ Doel: telefoon en laptop delen dezelfde lijst.
 - [ ] Donkere modus
 - [ ] Woorden markeren als "geleerd" / "nog oefenen"
 
-## Fase 5 — App-gevoel op de telefoon
+## Fase 5 — App-gevoel op de telefoon — klaar ✅
 
-- [ ] Van de web-app een "PWA" maken, zodat je 'm als icoon op je beginscherm zet
-      en hij opent als een echte app (zelfs offline).
+- [x] Van de web-app een **PWA** gemaakt (vite-plugin-pwa): installeerbaar met
+      eigen icoon, schermvullend, en de schil werkt offline. Zie README
+      ("Installeren als app").
+- [ ] Later eventueel een échte appstore-app met Capacitor (vereist een
+      Apple/Google-ontwikkelaarsaccount).
+
+## Extra opgeleverd (buiten de oorspronkelijke fasen)
+
+- [x] **Snel toevoegen** (alleen Japans + vertaling) met **automatische furigana**
+      via kuromoji — de lezing komt automatisch boven de kanji.
+- [x] **Meerdere woorden tegelijk verwijderen** (selecteer-modus).
