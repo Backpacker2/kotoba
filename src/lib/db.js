@@ -123,6 +123,17 @@ export async function deleteWord(id) {
   words.update((list) => list.filter((w) => w.id !== id));
 }
 
+/** Verwijder meerdere woorden in één keer. */
+export async function deleteWords(ids) {
+  if (!ids || ids.length === 0) return;
+  const { error } = await supabase.from(TABLE).delete().in('id', ids);
+  if (error) {
+    dbError.set(uitleg(error));
+    return;
+  }
+  words.update((list) => list.filter((w) => !ids.includes(w.id)));
+}
+
 // --- Voorbeeldwoorden (alleen als de database nog leeg is) ----------------
 
 const SEED_FLAG = 'kotobako.seeded';

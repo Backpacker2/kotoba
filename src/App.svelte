@@ -1,12 +1,17 @@
 <script>
-  import { words, loading, dbError, SOURCES } from './lib/db.js';
+  import { words, loading, dbError, deleteWords, SOURCES } from './lib/db.js';
   import WordCard from './lib/WordCard.svelte';
   import WordForm from './lib/WordForm.svelte';
+  import QuickAdd from './lib/QuickAdd.svelte';
 
   let query = $state('');
   let activeSource = $state('Alle');
   let formOpen = $state(false);
   let editing = $state(null); // welk woord wordt bewerkt (of null)
+
+  // Selecteer-modus (meerdere woorden tegelijk verwijderen)
+  let selectMode = $state(false);
+  let selectedIds = $state([]);
 
   const filters = ['Alle', ...SOURCES];
 
@@ -31,6 +36,7 @@
   );
 
   function openNew() {
+    exitSelect();
     editing = null;
     formOpen = true;
   }
@@ -41,6 +47,32 @@
   function closeForm() {
     formOpen = false;
     editing = null;
+  }
+
+  // --- Selecteren ---
+  function enterSelect() {
+    closeForm();
+    selectMode = true;
+    selectedIds = [];
+  }
+  function exitSelect() {
+    selectMode = false;
+    selectedIds = [];
+  }
+  function toggleSelect(id) {
+    selectedIds = selectedIds.includes(id)
+      ? selectedIds.filter((x) => x !== id)
+      : [...selectedIds, id];
+  }
+  function selectAllVisible() {
+    selectedIds = visible.map((w) => w.id);
+  }
+  async function removeSelected() {
+    const n = selectedIds.length;
+    if (n === 0) return;
+    if (!confirm(`${n} ${n === 1 ? 'woord' : 'woorden'} verwijderen?`)) return;
+    await deleteWords(selectedIds);
+    exitSelect();
   }
 </script>
 
@@ -62,6 +94,12 @@
     <div class="stat"><b>{weekCount}</b><span>deze week toegevoegd</span></div>
   </section>
 
+  {#if !selectMode}
+    <section class="quickslot">
+      <QuickAdd />
+    </section>
+  {/if}
+
   {#if formOpen}
     <section class="formslot">
       <WordForm {editing} onclose={closeForm} />
@@ -70,16 +108,34 @@
 
   <section class="controls">
     <input class="field search" bind:value={query} placeholder="Zoek op woord, lezing, betekenis of label…" />
-    <div class="chips">
-      {#each filters as f}
-        <button
-          class="chip"
-          class:active={activeSource === f}
-          onclick={() => (activeSource = f)}
-        >{f}</button>
-      {/each}
+    <div class="chiprow">
+      <div class="chips">
+        {#each filters as f}
+          <button
+            class="chip"
+            class:active={activeSource === f}
+            onclick={() => (activeSource = f)}
+          >{f}</button>
+        {/each}
+      </div>
+      {#if !selectMode}
+        <button class="link-btn" onclick={enterSelect} disabled={$words.length === 0}>Selecteren</button>
+      {/if}
     </div>
   </section>
+
+  {#if selectMode}
+    <div class="selectbar">
+      <span class="count">{selectedIds.length} geselecteerd</span>
+      <button class="link-btn" onclick={selectAllVisible}>Alles ({visible.length})</button>
+      <button class="link-btn" onclick={() => (selectedIds = [])} disabled={selectedIds.length === 0}>Wissen</button>
+      <span class="spacer"></span>
+      <button class="btn danger" onclick={removeSelected} disabled={selectedIds.length === 0}>
+        Verwijder{selectedIds.length ? ` (${selectedIds.length})` : ''}
+      </button>
+      <button class="btn" onclick={exitSelect}>Klaar</button>
+    </div>
+  {/if}
 
   {#if $loading}
     <div class="empty">
@@ -99,7 +155,13 @@
   {:else}
     <div class="grid">
       {#each visible as word (word.id)}
-        <WordCard {word} onedit={openEdit} />
+        <WordCard
+          {word}
+          onedit={openEdit}
+          selectable={selectMode}
+          selected={selectedIds.includes(word.id)}
+          ontoggle={toggleSelect}
+        />
       {/each}
     </div>
   {/if}
@@ -149,10 +211,12 @@
     border: 1px solid #eecbc6;
   }
 
+  .quickslot { margin: 18px 0 0; }
   .formslot { margin: 20px 0 8px; }
 
-  .controls { margin: 22px 0 18px; display: flex; flex-direction: column; gap: 14px; }
+  .controls { margin: 20px 0 16px; display: flex; flex-direction: column; gap: 14px; }
   .search { max-width: 100%; }
+  .chiprow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   .chips { display: flex; gap: 8px; flex-wrap: wrap; }
   .chip {
     border: 1px solid var(--line);
@@ -166,6 +230,42 @@
   }
   .chip:hover { border-color: var(--ink-soft); }
   .chip.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+
+  .link-btn {
+    border: none;
+    background: transparent;
+    color: var(--accent);
+    font-size: .88rem;
+    font-weight: 600;
+    padding: 6px 4px;
+  }
+  .link-btn:hover:not(:disabled) { text-decoration: underline; }
+  .link-btn:disabled { color: var(--ink-soft); opacity: .5; cursor: default; }
+
+  .selectbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    position: sticky;
+    top: 10px;
+    z-index: 5;
+  }
+  .selectbar .count { font-weight: 600; font-size: .95rem; }
+  .selectbar .spacer { flex: 1; }
+  .btn.danger {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .btn.danger:hover:not(:disabled) { background: var(--accent-ink); border-color: var(--accent-ink); }
+  .btn.danger:disabled { opacity: .45; cursor: default; }
 
   .grid {
     display: grid;

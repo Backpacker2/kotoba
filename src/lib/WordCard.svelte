@@ -1,7 +1,7 @@
 <script>
   import { deleteWord } from './db.js';
 
-  let { word, onedit } = $props();
+  let { word, onedit, selectable = false, selected = false, ontoggle } = $props();
 
   // Bron -> kleurthema (zie app.css)
   const sourceClass = {
@@ -22,9 +22,28 @@
   function remove() {
     if (confirm(`"${word.japanese}" verwijderen?`)) deleteWord(word.id);
   }
+
+  function cardClick() {
+    if (selectable) ontoggle?.(word.id);
+  }
+  function cardKey(e) {
+    if (selectable && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      ontoggle?.(word.id);
+    }
+  }
 </script>
 
-<article class="card">
+<article
+  class="card"
+  class:selectable
+  class:selected
+  onclick={cardClick}
+  onkeydown={cardKey}
+  role={selectable ? 'button' : null}
+  tabindex={selectable ? 0 : null}
+  aria-pressed={selectable ? selected : null}
+>
   <div class="top">
     <div class="jp">
       {#if word.reading}
@@ -33,10 +52,14 @@
         {word.japanese}
       {/if}
     </div>
-    <div class="actions">
-      <button class="icon" title="Bewerken" onclick={() => onedit?.(word)} aria-label="Bewerken">✎</button>
-      <button class="icon" title="Verwijderen" onclick={remove} aria-label="Verwijderen">✕</button>
-    </div>
+    {#if selectable}
+      <span class="check" class:on={selected} aria-hidden="true">{selected ? '✓' : ''}</span>
+    {:else}
+      <div class="actions">
+        <button class="icon" title="Bewerken" onclick={() => onedit?.(word)} aria-label="Bewerken">✎</button>
+        <button class="icon" title="Verwijderen" onclick={remove} aria-label="Verwijderen">✕</button>
+      </div>
+    {/if}
   </div>
 
   <p class="meaning">{word.meaning}</p>
@@ -71,6 +94,13 @@
     transform: translateY(-2px);
     border-color: #dcd4c4;
   }
+  .card.selectable { cursor: pointer; }
+  .card.selectable:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .card.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent);
+    background: #fffaf8;
+  }
   .top {
     display: flex;
     align-items: flex-start;
@@ -99,6 +129,21 @@
     line-height: 1;
   }
   .icon:hover { background: var(--paper); color: var(--ink); }
+  /* Selectie-vinkje */
+  .check {
+    flex-shrink: 0;
+    width: 24px; height: 24px;
+    border: 2px solid var(--line);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: .8rem;
+    line-height: 1;
+    transition: background .12s, border-color .12s;
+  }
+  .check.on { background: var(--accent); border-color: var(--accent); }
   .meaning { margin: 0; font-size: 1.05rem; font-weight: 500; }
   .example {
     margin: 0;
