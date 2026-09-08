@@ -1,8 +1,12 @@
 <script>
-  import { words, loading, dbError, deleteWords, SOURCES } from './lib/db.js';
+  import { words, loading, dbError, deleteWords, loadWords, clearWords, SOURCES } from './lib/db.js';
+  import { session, profile, authReady, signOut } from './lib/auth.js';
   import WordCard from './lib/WordCard.svelte';
   import WordForm from './lib/WordForm.svelte';
   import QuickAdd from './lib/QuickAdd.svelte';
+  import Login from './lib/Login.svelte';
+
+  const FREE_LIMIT = 500;
 
   let query = $state('');
   let activeSource = $state('Alle');
@@ -14,6 +18,15 @@
   let selectedIds = $state([]);
 
   const filters = ['Alle', ...SOURCES];
+
+  // Laad de woorden zodra iemand is ingelogd; leeg de lijst bij uitloggen.
+  $effect(() => {
+    if ($session) loadWords();
+    else clearWords();
+  });
+
+  let premium = $derived($profile?.is_premium ?? false);
+  let atLimit = $derived(!premium && $words.length >= FREE_LIMIT);
 
   // Gefilterde + gesorteerde lijst (nieuwste eerst).
   let visible = $derived(
@@ -30,12 +43,12 @@
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   );
 
-  // Statistiek voor de motivatie-balk.
   let weekCount = $derived(
     $words.filter((w) => Date.now() - new Date(w.createdAt).getTime() < 7 * 86400000).length
   );
 
   function openNew() {
+    if (atLimit) return;
     exitSelect();
     editing = null;
     formOpen = true;
@@ -76,109 +89,152 @@
   }
 </script>
 
-<div class="wrap">
-  <header class="head">
-    <div class="brand">
-      <h1><span class="kanji">言葉</span> <span class="latin">Kotoba</span></h1>
-      <p class="tagline">Verzamel en leer je Japanse woorden</p>
+{#if !$authReady}
+  <div class="loadscreen"><p>Laden…</p></div>
+{:else if !$session}
+  <Login />
+{:else}
+  <div class="wrap">
+    <div class="account">
+      <span class="who">{$session.user?.email}</span>
+      <span class="badge {premium ? 'prem' : 'free'}">{premium ? 'Premium' : 'Gratis'}</span>
+      <button class="link-btn" onclick={signOut}>Uitloggen</button>
     </div>
-    <button class="btn btn-primary add" onclick={openNew}>＋ Woord toevoegen</button>
-  </header>
 
-  {#if $dbError}
-    <div class="banner error">{$dbError}</div>
-  {/if}
+    <header class="head">
+      <div class="brand">
+        <h1><span class="kanji">言葉</span> <span class="latin">Kotoba</span></h1>
+        <p class="tagline">Verzamel en leer je Japanse woorden</p>
+      </div>
+      <button class="btn btn-primary add" onclick={openNew} disabled={atLimit}>＋ Woord toevoegen</button>
+    </header>
 
-  <section class="stats">
-    <div class="stat"><b>{$words.length}</b><span>woorden bewaard</span></div>
-    <div class="stat"><b>{weekCount}</b><span>deze week toegevoegd</span></div>
-  </section>
+    {#if $dbError}
+      <div class="banner error">{$dbError}</div>
+    {/if}
 
-  {#if !selectMode}
-    <section class="quickslot">
-      <QuickAdd />
+    <section class="stats">
+      <div class="stat">
+        <b>{$words.length}{#if !premium}<span class="of"> / {FREE_LIMIT}</span>{/if}</b>
+        <span>woorden bewaard</span>
+      </div>
+      <div class="stat"><b>{weekCount}</b><span>deze week toegevoegd</span></div>
     </section>
-  {/if}
 
-  {#if formOpen}
-    <section class="formslot">
-      <WordForm {editing} onclose={closeForm} />
+    {#if !selectMode}
+      <section class="quickslot">
+        <QuickAdd {atLimit} />
+      </section>
+    {/if}
+
+    {#if formOpen}
+      <section class="formslot">
+        <WordForm {editing} onclose={closeForm} />
+      </section>
+    {/if}
+
+    <section class="controls">
+      <input class="field search" bind:value={query} placeholder="Zoek op woord, lezing, betekenis of label…" />
+      <div class="chiprow">
+        <div class="chips">
+          {#each filters as f}
+            <button
+              class="chip"
+              class:active={activeSource === f}
+              onclick={() => (activeSource = f)}
+            >{f}</button>
+          {/each}
+        </div>
+        {#if !selectMode}
+          <button class="link-btn" onclick={enterSelect} disabled={$words.length === 0}>Selecteren</button>
+        {/if}
+      </div>
     </section>
-  {/if}
 
-  <section class="controls">
-    <input class="field search" bind:value={query} placeholder="Zoek op woord, lezing, betekenis of label…" />
-    <div class="chiprow">
-      <div class="chips">
-        {#each filters as f}
-          <button
-            class="chip"
-            class:active={activeSource === f}
-            onclick={() => (activeSource = f)}
-          >{f}</button>
+    {#if selectMode}
+      <div class="selectbar">
+        <span class="count">{selectedIds.length} geselecteerd</span>
+        <button class="link-btn" onclick={selectAllVisible}>Alles ({visible.length})</button>
+        <button class="link-btn" onclick={() => (selectedIds = [])} disabled={selectedIds.length === 0}>Wissen</button>
+        <span class="spacer"></span>
+        <button class="btn danger" onclick={removeSelected} disabled={selectedIds.length === 0}>
+          Verwijder{selectedIds.length ? ` (${selectedIds.length})` : ''}
+        </button>
+        <button class="btn" onclick={exitSelect}>Klaar</button>
+      </div>
+    {/if}
+
+    {#if $loading}
+      <div class="empty">
+        <p class="big">Laden…</p>
+        <p>Je woorden worden uit de cloud opgehaald.</p>
+      </div>
+    {:else if visible.length === 0}
+      <div class="empty">
+        {#if $words.length === 0}
+          <p class="big">Nog geen woorden 📖</p>
+          <p>Voeg je eerste Japanse woord toe en bouw je verzameling op.</p>
+        {:else}
+          <p class="big">Niets gevonden</p>
+          <p>Pas je zoekopdracht of filter aan.</p>
+        {/if}
+      </div>
+    {:else}
+      <div class="grid">
+        {#each visible as word (word.id)}
+          <WordCard
+            {word}
+            onedit={openEdit}
+            selectable={selectMode}
+            selected={selectedIds.includes(word.id)}
+            ontoggle={toggleSelect}
+          />
         {/each}
       </div>
-      {#if !selectMode}
-        <button class="link-btn" onclick={enterSelect} disabled={$words.length === 0}>Selecteren</button>
-      {/if}
-    </div>
-  </section>
+    {/if}
 
-  {#if selectMode}
-    <div class="selectbar">
-      <span class="count">{selectedIds.length} geselecteerd</span>
-      <button class="link-btn" onclick={selectAllVisible}>Alles ({visible.length})</button>
-      <button class="link-btn" onclick={() => (selectedIds = [])} disabled={selectedIds.length === 0}>Wissen</button>
-      <span class="spacer"></span>
-      <button class="btn danger" onclick={removeSelected} disabled={selectedIds.length === 0}>
-        Verwijder{selectedIds.length ? ` (${selectedIds.length})` : ''}
-      </button>
-      <button class="btn" onclick={exitSelect}>Klaar</button>
-    </div>
-  {/if}
-
-  {#if $loading}
-    <div class="empty">
-      <p class="big">Laden…</p>
-      <p>Je woorden worden uit de cloud opgehaald.</p>
-    </div>
-  {:else if visible.length === 0}
-    <div class="empty">
-      {#if $words.length === 0}
-        <p class="big">Nog geen woorden 📖</p>
-        <p>Voeg je eerste Japanse woord toe en bouw je verzameling op.</p>
-      {:else}
-        <p class="big">Niets gevonden</p>
-        <p>Pas je zoekopdracht of filter aan.</p>
-      {/if}
-    </div>
-  {:else}
-    <div class="grid">
-      {#each visible as word (word.id)}
-        <WordCard
-          {word}
-          onedit={openEdit}
-          selectable={selectMode}
-          selected={selectedIds.includes(word.id)}
-          ontoggle={toggleSelect}
-        />
-      {/each}
-    </div>
-  {/if}
-
-  <footer class="foot">
-    <span>{visible.length} van {$words.length} getoond</span>
-    <span>·</span>
-    <span>☁︎ Gesynct via de cloud — zichtbaar op al je apparaten</span>
-  </footer>
-</div>
+    <footer class="foot">
+      <span>{visible.length} van {$words.length} getoond</span>
+      <span>·</span>
+      <span>☁︎ Gesynct via de cloud — zichtbaar op al je apparaten</span>
+    </footer>
+  </div>
+{/if}
 
 <style>
+  .loadscreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-soft);
+  }
   .wrap {
     max-width: var(--max-w);
     margin: 0 auto;
-    padding: 28px 20px 60px;
+    padding: 20px 20px 60px;
   }
+  .account {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+    font-size: .85rem;
+    color: var(--ink-soft);
+  }
+  .account .who { margin-right: auto; }
+  .badge {
+    font-size: .7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .badge.free { background: #ece7dc; color: var(--ink-soft); }
+  .badge.prem { background: var(--accent-bg); color: var(--accent-ink); }
+
   .head {
     display: flex;
     align-items: flex-end;
@@ -193,10 +249,12 @@
   .latin { color: var(--accent); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-size: .95rem; }
   .tagline { margin: 4px 0 0; color: var(--ink-soft); font-size: .95rem; }
   .add { white-space: nowrap; }
+  .add:disabled { opacity: .45; cursor: default; }
 
   .stats { display: flex; gap: 28px; margin: 22px 0 4px; }
   .stat { display: flex; flex-direction: column; }
   .stat b { font-size: 1.7rem; font-weight: 700; line-height: 1; }
+  .stat b .of { font-size: 1rem; font-weight: 500; color: var(--ink-soft); }
   .stat span { font-size: .82rem; color: var(--ink-soft); margin-top: 4px; }
 
   .banner {

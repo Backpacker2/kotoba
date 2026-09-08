@@ -2,13 +2,15 @@
   import { addWord } from './db.js';
   import { readingFor } from './furigana.js';
 
+  let { atLimit = false } = $props();
+
   let japanese = $state('');
   let meaning = $state('');
   let jpInput = $state(null);
   let saving = $state(false);
 
   async function quickSave() {
-    if (!japanese.trim() || !meaning.trim() || saving) return;
+    if (atLimit || !japanese.trim() || !meaning.trim() || saving) return;
     saving = true;
     const jp = japanese.trim();
     // Bepaal automatisch de lezing (hiragana) zodat die als furigana
@@ -27,28 +29,34 @@
   }
 </script>
 
-<form class="quick" onsubmit={(e) => { e.preventDefault(); quickSave(); }}>
-  <span class="label">Snel toevoegen</span>
-  <input
-    class="field jp"
-    bind:value={japanese}
-    bind:this={jpInput}
-    placeholder="日本語"
-    autocomplete="off"
-    aria-label="Japans woord"
-  />
-  <span class="arrow">→</span>
-  <input
-    class="field"
-    bind:value={meaning}
-    placeholder="vertaling"
-    autocomplete="off"
-    aria-label="Vertaling"
-  />
-  <button type="submit" class="btn btn-primary add" disabled={saving || !japanese.trim() || !meaning.trim()}>
-    {saving ? '…' : '＋'}
-  </button>
-</form>
+{#if atLimit}
+  <div class="limit">
+    Je hebt de gratis limiet van <b>500 woorden</b> bereikt. Upgrade naar premium voor onbeperkt toevoegen.
+  </div>
+{:else}
+  <form class="quick" onsubmit={(e) => { e.preventDefault(); quickSave(); }}>
+    <span class="label">Snel toevoegen</span>
+    <input
+      class="field jp"
+      bind:value={japanese}
+      bind:this={jpInput}
+      placeholder="日本語"
+      autocomplete="off"
+      aria-label="Japans woord"
+    />
+    <span class="arrow">→</span>
+    <input
+      class="field"
+      bind:value={meaning}
+      placeholder="vertaling"
+      autocomplete="off"
+      aria-label="Vertaling"
+    />
+    <button type="submit" class="btn btn-primary add" disabled={saving || !japanese.trim() || !meaning.trim()}>
+      {saving ? '…' : '＋'}
+    </button>
+  </form>
+{/if}
 
 <style>
   .quick {
@@ -77,6 +85,16 @@
     flex-shrink: 0;
   }
   .add:disabled { opacity: .45; cursor: default; }
+
+  .limit {
+    background: var(--accent-bg);
+    color: var(--accent-ink);
+    border: 1px solid #eecbc6;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: .92rem;
+  }
+  .limit b { font-weight: 700; }
 
   @media (max-width: 560px) {
     .quick { flex-wrap: wrap; }
