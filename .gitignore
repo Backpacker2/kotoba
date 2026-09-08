@@ -27,3 +27,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# kuromoji-woordenboek (wordt automatisch gekopieerd door scripts/copy-dict.mjs)
+public/dict

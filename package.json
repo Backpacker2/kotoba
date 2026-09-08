@@ -4,7 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "copy-dict": "node scripts/copy-dict.mjs",
+    "predev": "npm run copy-dict",
     "dev": "vite",
+    "prebuild": "npm run copy-dict",
     "build": "vite build",
     "preview": "vite preview",
     "deploy": "gh-pages -d dist -b gh-pages"
@@ -16,6 +19,8 @@
     "vite": "^8.2.2"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.109.0"
+    "@sglkc/kuromoji": "^1.1.0",
+    "@supabase/supabase-js": "^2.109.0",
+    "fflate": "^0.8.3"
   }
 }

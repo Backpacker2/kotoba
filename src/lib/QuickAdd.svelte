@@ -1,5 +1,6 @@
 <script>
   import { addWord } from './db.js';
+  import { readingFor } from './furigana.js';
 
   let japanese = $state('');
   let meaning = $state('');
@@ -9,8 +10,13 @@
   async function quickSave() {
     if (!japanese.trim() || !meaning.trim() || saving) return;
     saving = true;
+    const jp = japanese.trim();
+    // Bepaal automatisch de lezing (hiragana) zodat die als furigana
+    // boven de kanji komt. De eerste keer duurt dit even (woordenboek laadt).
+    const reading = await readingFor(jp);
     await addWord({
-      japanese: japanese.trim(),
+      japanese: jp,
+      reading,
       meaning: meaning.trim(),
       source: 'Anders',
     });
@@ -39,8 +45,8 @@
     autocomplete="off"
     aria-label="Vertaling"
   />
-  <button type="submit" class="btn btn-primary add" disabled={!japanese.trim() || !meaning.trim()}>
-    ＋
+  <button type="submit" class="btn btn-primary add" disabled={saving || !japanese.trim() || !meaning.trim()}>
+    {saving ? '…' : '＋'}
   </button>
 </form>
 
