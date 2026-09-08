@@ -67,11 +67,17 @@ export function clearWords() {
   dbError.set('');
 }
 
-/** Voeg een nieuw woord toe. user_id wordt door de database ingevuld. */
+/** Voeg een nieuw woord toe (gekoppeld aan de ingelogde gebruiker). */
 export async function addWord(data) {
+  const row = toRow(data);
+  // Koppel het woord expliciet aan de ingelogde gebruiker (naast de
+  // database-standaard), zodat de beveiligingsregel altijd klopt.
+  const { data: auth } = await supabase.auth.getSession();
+  if (auth?.session?.user?.id) row.user_id = auth.session.user.id;
+
   const { data: inserted, error } = await supabase
     .from(TABLE)
-    .insert(toRow(data))
+    .insert(row)
     .select()
     .single();
   if (error) {
