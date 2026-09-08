@@ -1,5 +1,5 @@
 <script>
-  import { words, SOURCES } from './lib/db.js';
+  import { words, loading, dbError, SOURCES } from './lib/db.js';
   import WordCard from './lib/WordCard.svelte';
   import WordForm from './lib/WordForm.svelte';
 
@@ -53,6 +53,10 @@
     <button class="btn btn-primary add" onclick={openNew}>＋ Woord toevoegen</button>
   </header>
 
+  {#if $dbError}
+    <div class="banner error">{$dbError}</div>
+  {/if}
+
   <section class="stats">
     <div class="stat"><b>{$words.length}</b><span>woorden bewaard</span></div>
     <div class="stat"><b>{weekCount}</b><span>deze week toegevoegd</span></div>
@@ -77,7 +81,12 @@
     </div>
   </section>
 
-  {#if visible.length === 0}
+  {#if $loading}
+    <div class="empty">
+      <p class="big">Laden…</p>
+      <p>Je woorden worden uit de cloud opgehaald.</p>
+    </div>
+  {:else if visible.length === 0}
     <div class="empty">
       {#if $words.length === 0}
         <p class="big">Nog geen woorden 📖</p>
@@ -98,7 +107,7 @@
   <footer class="foot">
     <span>{visible.length} van {$words.length} getoond</span>
     <span>·</span>
-    <span>Opgeslagen op dit apparaat — cloud-sync komt eraan</span>
+    <span>☁︎ Gesynct via de cloud — zichtbaar op al je apparaten</span>
   </footer>
 </div>
 
@@ -127,6 +136,18 @@
   .stat { display: flex; flex-direction: column; }
   .stat b { font-size: 1.7rem; font-weight: 700; line-height: 1; }
   .stat span { font-size: .82rem; color: var(--ink-soft); margin-top: 4px; }
+
+  .banner {
+    margin: 18px 0 0;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: .92rem;
+  }
+  .banner.error {
+    background: var(--accent-bg);
+    color: var(--accent-ink);
+    border: 1px solid #eecbc6;
+  }
 
   .formslot { margin: 20px 0 8px; }
 
